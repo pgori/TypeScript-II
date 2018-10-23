@@ -2,7 +2,7 @@ import { NegociacoesView, MensagemView } from '../views/index';
 import { Negociacoes, Negociacao } from '../models/index';
 import { domInject, throttle } from '../helpers/decorators/index';
 import { NegociacaoParcial } from '../models/index';
-import { NegociacaoService } from '../services/index';
+import { NegociacaoService, ResponseHandler } from '../services/index';
 
 export class NegociacaoController {
 
@@ -56,21 +56,20 @@ export class NegociacaoController {
     @throttle()
     importarDados(){
 
-        function isOk(res: Response){
-            
-            if(res.ok){
-                return res;
-            } else{
-                throw new Error(res.statusText);
-            }
+        const isOk: ResponseHandler = (res: Response) => {
+            if(res.ok) return res;
+            throw new Error(res.statusText);
         }
         
-        // this._service
-        //     .obterNegociacoes(isOk)
-        //     .then(negociacoes => {
-        //         negociacoes.forEach(negociacao => this._negociacoes.adiciona(negociacao));
-        //         this._negociacoesView.update(this._negociacoes);
-        //     });
+        this._service
+            .obterNegociacoes(res => {
+                if(res.ok) return res;
+                throw new Error(res.statusText);
+            })
+            .then(negociacoes => {
+                negociacoes.forEach(negociacao => this._negociacoes.adiciona(negociacao));
+                this._negociacoesView.update(this._negociacoes);
+            });
     }
 }
 
